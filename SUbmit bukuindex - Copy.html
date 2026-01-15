@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<title>DAFTAR BUKU</title>
+
+<style>
+/* ===== BODY ===== */
+body{
+  margin:0;
+  min-height:100vh;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  font-family: 'Georgia', serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px;
+}
+
+/* ===== CARD ===== */
+.card{
+  background: rgba(255,255,255,0.95);
+  width:450px;
+  max-width:100%;
+  padding:30px;
+  border-radius:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.4);
+  position:relative;
+  box-sizing:border-box;
+}
+
+/* ===== HEADING ===== */
+h2{
+  text-align:center;
+  margin-bottom:20px;
+  letter-spacing:1px;
+  font-size:22px;
+}
+
+/* ===== LABEL ===== */
+label{
+  font-weight:bold;
+  font-size:14px;
+}
+
+/* ===== INPUT / TEXTAREA / SELECT ===== */
+input, textarea, select{
+  width:100%;
+  padding:10px;
+  margin:6px 0 15px;
+  border:none;
+  border-radius:8px;
+  background:#f0f0f0;
+  font-size:14px;
+  box-sizing:border-box;
+}
+
+/* ===== BUTTON ===== */
+button{
+  width:100%;
+  padding:12px;
+  background:linear-gradient(90deg,#141e30,#243b55);
+  color:white;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+button:hover{
+  opacity:0.9;
+}
+
+/* ===== LOADING SPINNER ===== */
+#loading{
+  display:none;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  border:5px solid #f3f3f3;
+  border-top:5px solid #141e30;
+  border-radius:50%;
+  width:50px;
+  height:50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin{
+  0%{ transform:translate(-50%, -50%) rotate(0deg);}
+  100%{ transform:translate(-50%, -50%) rotate(360deg);}
+}
+
+/* ===== SUCCESS MESSAGE ===== */
+#successMsg{
+  display:none;
+  position:absolute;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#4BB543;
+  color:white;
+  padding:10px 20px;
+  border-radius:10px;
+  font-weight:bold;
+  text-align:center;
+  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* ===== RESPONSIVE MEDIA QUERIES ===== */
+@media (max-width:600px){
+  .card{
+    width:100%;
+    padding:20px;
+  }
+  h2{
+    font-size:20px;
+  }
+  label, input, textarea, select{
+    font-size:13px;
+  }
+  button{
+    font-size:15px;
+    padding:10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>SUBMIT NO. PEROLEHAN</h2>
+
+<div id="successMsg">Data berjaya dihantar!</div>
+<div id="loading"></div>
+
+<form
+  id="perolehanForm"
+  action="https://docs.google.com/forms/d/e/1FAIpQLScZSQnNK57ky5u4sjlz9OF2TKafFu0i69f3H5k2l3feTFwVdA/formResponse"
+  method="POST"
+  target="hidden_iframe">
+
+<label>No. Panggilan</label>
+<input type="text" name="entry.179529048" id="noPanggilan" required>
+
+<label>Judul</label>
+<input type="text" name="entry.1711036961" required>
+
+<label>Harga (RM)</label>
+<input type="number" name="entry.227092757" required>
+
+<label>Tahun</label>
+<select name="entry.763828337" id="tahun" required></select>
+
+<label>Catatan</label>
+<textarea name="entry.1292229592" id="catatan"></textarea>
+
+<button type="submit">Hantar</button>
+</form>
+
+<iframe name="hidden_iframe" style="display:none;"></iframe>
+</div>
+
+<script>
+const form = document.getElementById('perolehanForm');
+const loading = document.getElementById('loading');
+const successMsg = document.getElementById('successMsg');
+
+const noPanggilanInput = document.getElementById('noPanggilan');
+const tahunSelect = document.getElementById('tahun');
+const catatanInput = document.getElementById('catatan');
+
+// ====== CATATAN AUTO REPLACE ======
+const shortcodes = {
+  's': 'Sumbangan',
+  'etn': 'Teknologi Elektronik',
+  'ete': 'Teknologi Elektrik',
+  'ppu': 'Teknologi Penyejukan dan Penyamanan Udara',
+  'mtk': 'Teknologi Kimpalan',
+  'mpi': 'Teknologi Permesinan Industri',
+  'mta': 'Teknologi Automotif',
+  'bak': 'Perakaunan',
+  'man': 'Mandarin',
+  'bkp': 'Setiausaha'
+};
+
+catatanInput.addEventListener('input', ()=>{
+  const v = catatanInput.value.trim().toLowerCase();
+  if(shortcodes[v]) catatanInput.value = shortcodes[v];
+});
+
+// ====== GENERATE TAHUN ======
+const startYear = new Date().getFullYear();
+for(let i=0;i<20;i++){
+  const y = startYear + i;
+  const opt = document.createElement('option');
+  opt.value = y;
+  opt.text = y;
+  tahunSelect.appendChild(opt);
+}
+
+// ====== NO PANGGILAN STATIC TAHUN + DASH ======
+function updateNo(){
+  const tahun = tahunSelect.value;
+  noPanggilanInput.value = `${tahun}-`; // Hanya tahun + dash, lepas tu boleh taip sendiri
+}
+
+tahunSelect.addEventListener('change', updateNo);
+
+// ====== SUBMIT ======
+form.addEventListener('submit', ()=>{
+  loading.style.display = 'block';
+  setTimeout(()=>{
+    loading.style.display = 'none';
+    successMsg.style.display = 'block';
+
+    setTimeout(()=>{
+      successMsg.style.display = 'none';
+      form.reset();
+      tahunSelect.value = new Date().getFullYear();
+      updateNo();
+    },2000);
+
+  },1500);
+});
+
+// init
+setTimeout(updateNo,100);
+</script>
+
+</body>
+</html>
